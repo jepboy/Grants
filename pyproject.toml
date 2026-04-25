@@ -1,0 +1,52 @@
+[project]
+name = "yolc-grants"
+version = "0.1.0"
+description = "Grant discovery, analysis, and grounded drafting for Youth of Lewis County."
+requires-python = ">=3.11"
+readme = "README.md"
+dependencies = [
+    "anthropic>=0.40.0",
+    "voyageai>=0.3.0",
+    "openai>=1.50.0",
+    "fastapi>=0.115.0",
+    "uvicorn[standard]>=0.30.0",
+    "streamlit>=1.38.0",
+    "pydantic>=2.8.0",
+    "pydantic-settings>=2.4.0",
+    "psycopg[binary]>=3.2.0",
+    "pgvector>=0.3.0",
+    "sqlalchemy>=2.0.30",
+    "pypdf>=5.0.0",
+    "python-docx>=1.1.2",
+    "python-dotenv>=1.0.1",
+    "tiktoken>=0.7.0",
+    "httpx>=0.27.0",
+    "tenacity>=9.0.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.3.0",
+    "pytest-asyncio>=0.24.0",
+    "ruff>=0.6.0",
+    "mypy>=1.11.0",
+]
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["kb*", "funders*", "matching*", "drafter*", "verifier*", "api*", "ui*", "common*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+markers = [
+    "live: tests that hit live LLM/embedding APIs (skipped by default)",
+    "db: tests that require a Postgres+pgvector instance",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
