@@ -54,8 +54,18 @@ Document ingestion (PDF, DOCX, TXT, MD), chunking with metadata, embeddings
 fact extraction, retrieval that always returns source citations.
 
 ### Layer 2 — Funder Intelligence  (`funders/`)
-ProPublica 990-PF ingestion, funder profile schema, curated seed list for
-rural NY youth-serving capacity grants.
+ProPublica Nonprofit Explorer ingestion (no auth required), `FunderProfile`
+Pydantic schema, Postgres tables (`funders`, `funder_geographies`,
+`funder_priorities`, `funder_deadlines`, `funder_grants`), curated seed
+list of ~12 rural-NY youth capacity-building funders + state/federal
+funding streams. Detailed Schedule I grant-by-grant parsing of 990-PF PDFs
+is deferred — the JSON payload only exposes per-year totals.
+
+Truthfulness rules apply here too: every numeric or qualitative claim about
+a funder comes with a `sources` URL list. Geographic mismatches (e.g. Mary
+Reynolds Babcock, which only funds the U.S. South) are kept in the seed
+list with documented `notes` so the Phase 3 matcher can demonstrably score
+them low rather than us silently drop them.
 
 ### Layer 3 — Matching Engine  (`matching/`)
 Hard filters (geography, budget eligibility, program area, funding range),
@@ -134,15 +144,14 @@ citations with file + page + snippet.
 
 ## MVP Phases
 
-**Phase 1 (current):** KB ingestion + retrieval; single-RFP grounded drafter
+**Phase 1 (shipped):** KB ingestion + retrieval; single-RFP grounded drafter
 with citations and `[NEEDS INPUT]` flags; verification pass on every draft;
 truthfulness tests.
 
-**Phase 2:** Funder profile ingestion (990-PF) + curated funder list.
+**Phase 2 (current):** Funder profile ingestion (ProPublica Nonprofit
+Explorer JSON) + curated rural-NY youth seed list.
 
 **Phase 3:** Matching engine + pipeline view with deadlines.
-
-**Stop after Phase 1 ships end-to-end. Confirm with Wyatt before Phase 2.**
 
 ---
 

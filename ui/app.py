@@ -35,7 +35,9 @@ st.caption(
 )
 
 
-tab_kb, tab_draft, tab_verify = st.tabs(["Knowledge Base", "Draft from RFP", "Verification"])
+tab_kb, tab_draft, tab_verify, tab_funders = st.tabs(
+    ["Knowledge Base", "Draft from RFP", "Verification", "Funders"]
+)
 
 
 with tab_kb:
@@ -161,3 +163,72 @@ with tab_verify:
                     f"  Section: _{f.section_question[:80]}_\n\n"
                     f"  Reason: {f.reason}"
                 )
+
+
+with tab_funders:
+    from funders.ingest import load_seed
+    from funders.repo import list_funders
+    from funders.seed import SEED_FUNDERS
+
+    st.header("Funders")
+    st.caption(
+        "Curated seed list of capacity-building funders for rural NY youth-serving "
+        "orgs. Re-load the seed list whenever you edit `funders/seed.py`. ProPublica "
+        "enrichment runs from the CLI: `python -m funders.ingest enrich --all`."
+    )
+
+    col_a, col_b = st.columns([1, 3])
+    with col_a:
+        if st.button("(Re)load seed list", help="Upserts SEED_FUNDERS into Postgres"):
+            try:
+                n = load_seed()
+                st.success(f"Loaded {n} seed funders.")
+            except Exception as e:  # noqa: BLE001
+                st.error(f"Seed load failed: {e}")
+
+    with col_b:
+        st.metric("Seed list size", len(SEED_FUNDERS))
+
+    try:
+        funders = list_funders()
+    except Exception as e:  # noqa: BLE001
+        st.warning(f"DB not reachable — showing in-memory seed list. ({e})")
+        funders = SEED_FUNDERS
+
+    if not funders:
+        st.info("No funders ingested yet. Click 'Reload seed list'.")
+    else:
+        prio_filter = st.text_input("Filter by priority tag (substring)", "")
+        geo_filter = st.text_input("Filter by geography tag (substring)", "")
+        for f in funders:
+            if prio_filter and not any(prio_filter.lower() in p.lower() for p in f.priorities):
+                continue
+            if geo_filter and not any(geo_filter.lower() in g.lower() for g in f.geographies):
+                continue
+            with st.expander(f.headline()):
+                st.markdown(f"**Classification:** {f.classification}")
+                if f.ein:
+                    st.markdown(f"**EIN:** {f.ein}")
+                if f.geographies:
+                    st.markdown("**Geographies:** " + ", ".join(f.geographies))
+                if f.priorities:
+                    st.markdown("**Priorities:** " + ", ".join(f.priorities))
+                cap_bits = []
+                if f.funds_capacity_building:
+                    cap_bits.append("capacity building")
+                if f.funds_executive_director:
+                    cap_bits.append("ED salary")
+                if f.funds_general_operating:
+                    cap_bits.append("general operating")
+                if f.funds_program:
+                    cap_bits.append("program")
+                if cap_bits:
+                    st.markdown("**Funds:** " + ", ".join(cap_bits))
+                if f.website:
+                    st.markdown(f"**Website:** {f.website}")
+                if f.application_url:
+                    st.markdown(f"**Apply:** {f.application_url}")
+                if f.notes:
+                    st.markdown(f"**Notes:** {f.notes}")
+                if f.sources:
+                    st.markdown("**Sources:** " + ", ".join(f.sources))

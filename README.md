@@ -23,10 +23,17 @@ docker run -d --name grants-pg -p 5432:5432 \
 # 3. Configure
 cp .env.example .env  # then fill in keys
 
-# 4. Initialize schema
+# 4. Initialize schemas
 python -m kb.schema init
+python -m funders.schema init
 
-# 5. Run the UI
+# 5. Load the curated funder seed list (Phase 2)
+python -m funders.ingest seed
+
+# 6. (Optional) Enrich seed funders with ProPublica payloads
+python -m funders.ingest enrich --all
+
+# 7. Run the UI
 streamlit run ui/app.py
 ```
 
@@ -35,7 +42,7 @@ streamlit run ui/app.py
 | Module     | Purpose                                                            |
 |------------|--------------------------------------------------------------------|
 | `kb/`      | Org knowledge base — ingest, chunk, embed, retrieve with citations |
-| `funders/` | Funder intelligence (Phase 2)                                      |
+| `funders/` | Funder intelligence — ProPublica client, seed list, ingestion CLI  |
 | `matching/`| Org ↔ funder matching (Phase 3)                                   |
 | `drafter/` | Per-section RAG drafter with Anthropic native citations            |
 | `verifier/`| Anti-fraud claim verification pass                                 |
